@@ -1,0 +1,25 @@
+report_id,report_name,domain,criticality,grain,measure_type,pass_target_pct
+1,Loan Disbursement Summary,Lending,Critical,period x region x product,amount,99.9
+2,Loan Outstanding by Branch,Lending,Critical,period x region,amount,99.9
+3,NPA Movement,Lending,Critical,period x region x product,amount,99.9
+4,Collections Efficiency,Lending,High,period x region,rate,99.5
+5,Loan Application Funnel,Lending,Medium,period x product,count,99.5
+6,Deposit Balance Summary,Deposits,Critical,period x region x product,amount,99.9
+7,CASA Ratio Trend,Deposits,High,period x region,rate,99.5
+8,Term Deposit Maturity,Deposits,Medium,period x product,amount,99.5
+9,Savings Account Openings,Deposits,Low,period x product,count,99.0
+10,Card Spend by Category,Cards,High,period x region x product,amount,99.5
+11,Card Activation Rate,Cards,Medium,period x region,rate,99.5
+12,Card Delinquency Roll Rates,Cards,High,period x region x product,rate,99.5
+13,Reward Points Liability,Cards,Medium,period x product,amount,99.5
+14,Credit Exposure by Segment,Risk,Critical,period x region x product,amount,99.9
+15,Provision Coverage,Risk,Critical,period x region,rate,99.9
+16,Concentration Risk,Risk,High,period x product,amount,99.5
+17,Early Warning Indicators,Risk,High,period x region x product,count,99.5
+18,Net Interest Margin,Finance,Critical,period x region,rate,99.9
+19,Fee Income Summary,Finance,High,period x region x product,amount,99.5
+20,Cost to Income Ratio,Finance,High,period x region,rate,99.5
+21,Branch Profitability,Finance,Medium,period x region x product,amount,99.5
+22,Complaint Resolution SLA,Operations,Medium,period x product,rate,99.5
+23,Branch Footfall,Operations,Low,period x region x product,count,99.0
+24,Call Centre Volume,Operations,Low,period x product,count,99.0

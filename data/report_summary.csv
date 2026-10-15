@@ -1,0 +1,25 @@
+report_id,report_name,domain,criticality,grain,measure_type,pass_target_pct,rows,pass_rows,pass_rate_pct,value_mismatch,null_handling,missing_in_upgraded,extra_in_upgraded,duplicate_in_upgraded,key_format,ready_for_signoff
+1,Loan Disbursement Summary,Lending,Critical,period x region x product,amount,99.9,480,480,100.0,0,0,0,0,0,0,Ready
+2,Loan Outstanding by Branch,Lending,Critical,period x region,amount,99.9,96,92,95.83,0,4,0,0,0,0,Needs fix
+3,NPA Movement,Lending,Critical,period x region x product,amount,99.9,500,460,92.0,0,0,20,20,0,0,Needs fix
+4,Collections Efficiency,Lending,High,period x region,rate,99.5,100,96,96.0,0,0,0,0,4,0,Needs fix
+5,Loan Application Funnel,Lending,Medium,period x product,count,99.5,120,120,100.0,0,0,0,0,0,0,Ready
+6,Deposit Balance Summary,Deposits,Critical,period x region x product,amount,99.9,480,480,100.0,0,0,0,0,0,0,Ready
+7,CASA Ratio Trend,Deposits,High,period x region,rate,99.5,96,96,100.0,0,0,0,0,0,0,Ready
+8,Term Deposit Maturity,Deposits,Medium,period x product,amount,99.5,120,120,100.0,0,0,0,0,0,0,Ready
+9,Savings Account Openings,Deposits,Low,period x product,count,99.0,120,120,100.0,0,0,0,0,0,0,Ready
+10,Card Spend by Category,Cards,High,period x region x product,amount,99.5,480,480,100.0,0,0,0,0,0,34,Ready
+11,Card Activation Rate,Cards,Medium,period x region,rate,99.5,96,96,100.0,0,0,0,0,0,0,Ready
+12,Card Delinquency Roll Rates,Cards,High,period x region x product,rate,99.5,480,404,84.17,76,0,0,0,0,0,Needs fix
+13,Reward Points Liability,Cards,Medium,period x product,amount,99.5,120,120,100.0,0,0,0,0,0,0,Ready
+14,Credit Exposure by Segment,Risk,Critical,period x region x product,amount,99.9,480,480,100.0,0,0,0,0,0,0,Ready
+15,Provision Coverage,Risk,Critical,period x region,rate,99.9,96,94,97.92,0,0,2,0,0,0,Needs fix
+16,Concentration Risk,Risk,High,period x product,amount,99.5,127,120,94.49,0,0,0,0,7,0,Needs fix
+17,Early Warning Indicators,Risk,High,period x region x product,count,99.5,480,480,100.0,0,0,0,0,0,0,Ready
+18,Net Interest Margin,Finance,Critical,period x region,rate,99.9,96,96,100.0,0,0,0,0,0,0,Ready
+19,Fee Income Summary,Finance,High,period x region x product,amount,99.5,490,466,95.1,0,14,0,0,10,0,Needs fix
+20,Cost to Income Ratio,Finance,High,period x region,rate,99.5,96,96,100.0,0,0,0,0,0,0,Ready
+21,Branch Profitability,Finance,Medium,period x region x product,amount,99.5,480,447,93.12,0,0,33,0,0,0,Needs fix
+22,Complaint Resolution SLA,Operations,Medium,period x product,rate,99.5,120,120,100.0,0,0,0,0,0,6,Ready
+23,Branch Footfall,Operations,Low,period x region x product,count,99.0,480,480,100.0,0,0,0,0,0,0,Ready
+24,Call Centre Volume,Operations,Low,period x product,count,99.0,120,110,91.67,0,10,0,0,0,0,Needs fix

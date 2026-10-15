@@ -1,0 +1,12 @@
+report_id,report_name,criticality,status,rows_affected,example_key,example_legacy,example_upgraded,likely_root_cause
+12,Card Delinquency Roll Rates,High,VALUE_MISMATCH,76,2024-10|north|education,11.8668,7.5256,"Calculation or aggregation logic differs (check measure definition, grouping level)"
+21,Branch Profitability,Medium,MISSING_IN_UPGRADED,33,2024-10|south|education,42.06,,"Rows dropped by a filter, inner join, or date cut-off on the new platform"
+3,NPA Movement,Critical,EXTRA_IN_UPGRADED,20,2026-10|east|auto,,128.44,Rows appear only on the new platform (date/time-zone shift or new join path)
+3,NPA Movement,Critical,MISSING_IN_UPGRADED,20,2026-09|east|auto,128.44,,"Rows dropped by a filter, inner join, or date cut-off on the new platform"
+19,Fee Income Summary,High,NULL_HANDLING,14,2024-10|west|auto,,0.0,NULL coalesced to 0 on the new platform (align NULL semantics / COALESCE rules)
+24,Call Centre Volume,Low,NULL_HANDLING,10,2024-11|all|business,,0.0,NULL coalesced to 0 on the new platform (align NULL semantics / COALESCE rules)
+19,Fee Income Summary,High,DUPLICATE_IN_UPGRADED,10,2024-10|north|home,,26.24,Join fan-out: non-unique join key repeats rows
+16,Concentration Risk,High,DUPLICATE_IN_UPGRADED,7,2024-11|all|personal,,50.04,Join fan-out: non-unique join key repeats rows
+2,Loan Outstanding by Branch,Critical,NULL_HANDLING,4,2025-09|west|all,,0.0,NULL coalesced to 0 on the new platform (align NULL semantics / COALESCE rules)
+4,Collections Efficiency,High,DUPLICATE_IN_UPGRADED,4,2025-01|north|all,,6.7054,Join fan-out: non-unique join key repeats rows
+15,Provision Coverage,Critical,MISSING_IN_UPGRADED,2,2025-09|west|all,9.2094,,"Rows dropped by a filter, inner join, or date cut-off on the new platform"
