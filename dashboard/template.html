@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report Migration Validation Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,.10);
+    --blue: #2a78d6; --orange: #eb6834; --hover: rgba(11,11,11,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,.10);
+      --blue: #3987e5; --orange: #d95926; --hover: rgba(255,255,255,.08);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,.10);
+    --blue: #3987e5; --orange: #d95926; --hover: rgba(255,255,255,.08);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 22px; margin: 0 0 2px; font-weight: 650; }
+  .sub { color: var(--ink2); font-size: 13px; }
+  .badge { font-size: 12px; color: var(--ink2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; background: var(--surface); white-space: nowrap; }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; margin: 18px 0 14px; align-items: end; }
+  .controls label { display: flex; flex-direction: column; font-size: 12px; color: var(--ink2); gap: 4px; }
+  select, button { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; min-width: 140px; }
+  button { cursor: pointer; min-width: 0; }
+  button:hover, select:hover { background: var(--hover); }
+  input[type=range] { width: 260px; accent-color: var(--blue); }
+  .tol b { color: var(--ink); font-size: 13px; }
+  .chk { flex-direction: row !important; align-items: center; gap: 8px !important; padding-bottom: 8px; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .insight { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; color: var(--ink2); }
+  .insight b { color: var(--ink); }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .kpi .l { font-size: 12px; color: var(--ink2); }
+  .kpi .v { font-size: 26px; font-weight: 650; margin-top: 2px; }
+  .kpi .n { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 10px; min-width: 0; }
+  .card h2 { font-size: 14px; margin: 0; font-weight: 650; }
+  .card .d { font-size: 12px; color: var(--ink2); margin: 2px 0 8px; }
+  .span2 { grid-row: span 2; }
+  .full { grid-column: 1 / -1; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink2); margin: 0 0 6px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  svg.chart { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--muted); font-size: 10.5px; font-family: inherit; }
+  svg text.lab { fill: var(--ink2); font-size: 11.5px; }
+  svg text.val { fill: var(--ink); font-size: 11.5px; font-weight: 600; }
+  svg .grid line { stroke: var(--grid); stroke-width: 1; }
+  svg .base { stroke: var(--axis); stroke-width: 1; }
+  svg .tgt { stroke: var(--ink2); stroke-width: 2; }
+  .bar { transition: opacity .12s; }
+  .bar:hover { opacity: .8; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { color: var(--ink2); font-weight: 600; font-size: 12px; white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 11px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .tabwrap { overflow-x: auto; }
+  details { margin-top: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .tbl h3 { font-size: 13px; margin: 14px 0 4px; }
+  #tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--surface); padding: 6px 9px; border-radius: 8px; font-size: 12px; max-width: 280px; display: none; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+  footer { margin-top: 18px; color: var(--muted); font-size: 12px; }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  @media (max-width: 980px) { .kpis { grid-template-columns: repeat(2, 1fr); } .grid { grid-template-columns: 1fr; } .span2 { grid-row: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Report Migration Validation Dashboard</h1>
+      <div class="sub">24 banking reports &middot; legacy platform vs upgraded platform &middot; row-by-row regression comparison</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="badge">Synthetic demo data</span>
+      <button id="theme" aria-label="Toggle light or dark theme">Theme</button>
+    </div>
+  </header>
+
+  <div class="controls" role="group" aria-label="Controls">
+    <label class="tol">Relative tolerance: <b id="tolLabel"></b>
+      <input id="tol" type="range" min="0" max="7" step="1" value="4" aria-label="Relative tolerance">
+    </label>
+    <label>Domain<select id="fDomain"></select></label>
+    <label>Criticality<select id="fCrit"></select></label>
+    <label class="chk"><input id="fFix" type="checkbox"> Show only reports needing fixes</label>
+    <button id="reset">Reset</button>
+  </div>
+
+  <div class="insight" id="insight"></div>
+  <section class="kpis" id="kpis" aria-label="Key metrics"></section>
+
+  <section class="grid">
+    <div class="card span2">
+      <h2>Failing rows by report</h2>
+      <div class="d">Share of rows that do not reconcile. The dark tick marks each report's allowed limit; criticality sets the target.</div>
+      <div class="legend"><span><i style="background:var(--blue)"></i>Ready for sign-off</span><span><i style="background:var(--orange)"></i>Needs fix</span></div>
+      <div id="cReports"></div>
+    </div>
+    <div class="card">
+      <h2>What is going wrong</h2>
+      <div class="d">Rows per defect type in the current selection.</div>
+      <div class="legend"><span><i style="background:var(--orange)"></i>Fails</span><span><i style="background:var(--blue)"></i>Passes (warning only)</span></div>
+      <div id="cTypes"></div>
+    </div>
+    <div class="card">
+      <h2>Does the tolerance matter?</h2>
+      <div class="d">Rows with a non-zero difference, by size of the relative difference. Move the slider to see rows flip.</div>
+      <div class="legend"><span><i style="background:var(--blue)"></i>Within tolerance</span><span><i style="background:var(--orange)"></i>Outside tolerance</span></div>
+      <div id="cVar"></div>
+    </div>
+    <div class="card full">
+      <h2>Defect log: what to fix first</h2>
+      <div class="d">One line per report and defect type, largest first, with an example row and the usual root cause.</div>
+      <div class="tabwrap" id="cLog"></div>
+    </div>
+  </section>
+
+  <details>
+    <summary>View chart data as tables</summary>
+    <div class="tbl" id="tables"></div>
+  </details>
+
+  <footer>
+    Method: keys are trimmed and lower-cased, the legacy and upgraded outputs are joined on report + period + region + product,
+    and every row is classified exactly once (the row counts reconcile to zero). A value passes if it is identical, within &plusmn;0.01 absolute,
+    or within the selected relative tolerance. Reports are ready when the pass rate meets their target (Critical 99.9%, High and Medium 99.5%, Low 99.0%).
+    All data is randomly generated for portfolio purposes.
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const D = /*DATA*/;
+// row: [report, code, legacy, upgraded, absDiff, relDiff, key]
+// code: 0 value pair, 1 missing, 2 extra, 3 duplicate, 4 null handling, 5 key-format pair
+const R = D.rows, REP = D.reports;
+const TOLS = [0, 0.0001, 0.0003, 0.0005, 0.001, 0.002, 0.005, 0.01];
+const ABS_TOL = 0.01;
+const ST = ['Match', 'Within tolerance', 'Key format only', 'Value mismatch', 'NULL handling', 'Missing in upgraded', 'Extra in upgraded', 'Duplicate in upgraded'];
+const CAUSE = {
+  3: 'Calculation or aggregation logic differs (check measure definition and grouping level).',
+  4: 'NULL coalesced to 0 on the new platform (align NULL semantics).',
+  5: 'Rows dropped by a filter, inner join or date cut-off on the new platform.',
+  6: 'Rows exist only on the new platform (date / time-zone shift or new join path).',
+  7: 'Join fan-out: a non-unique join key repeats rows.'
+};
+const NS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+const state = { tol: 4, domain: '', crit: '', fix: false };
+const pct = (v, d = 1) => (v * 100).toFixed(d) + '%';
+const fmtTol = i => TOLS[i] === 0 ? '0% (+/-0.01 abs only)' : (TOLS[i] * 100).toFixed(2) + '%';
+const tablesData = {};
+
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in (attrs || {})) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function txt(parent, x, y, s, cls, anchor) { const t = el('text', { x, y, class: cls || '', 'text-anchor': anchor || 'start' }, parent); t.textContent = s; return t; }
+function svg(host, w, h, label) { host.innerHTML = ''; return el('svg', { viewBox: `0 0 ${w} ${h}`, class: 'chart', role: 'img', 'aria-label': label }, host); }
+function niceScale(m) {
+  if (m <= 0) return { max: 1, step: 0.25, n: 4 };
+  const raw = m / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  const n = Math.max(1, Math.ceil(m / step - 1e-9));
+  return { max: step * n, step, n };
+}
+function roundedRight(x, y, w, h, r) { r = Math.min(r, w, h / 2); return `M${x},${y}L${x + w - r},${y}Q${x + w},${y} ${x + w},${y + r}L${x + w},${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}L${x},${y + h}Z`; }
+function roundedTop(x, y, w, h, r) { r = Math.min(r, h, w / 2); return `M${x},${y + h}L${x},${y + r}Q${x},${y} ${x + r},${y}L${x + w - r},${y}Q${x + w},${y} ${x + w},${y + r}L${x + w},${y + h}Z`; }
+
+// classify a row under the current tolerance -> status index
+function classify(r, tol) {
+  switch (r[1]) {
+    case 0: return r[4] === 0 ? 0 : (r[4] <= ABS_TOL + 1e-9 || r[5] <= tol) ? 1 : 3;
+    case 5: return (r[4] === 0 || r[4] <= ABS_TOL + 1e-9 || r[5] <= tol) ? 2 : 3;
+    case 1: return 5; case 2: return 6; case 3: return 7; default: return 4;
+  }
+}
+const isPass = s => s <= 2;
+function inScope(rep) {
+  const m = REP[rep];
+  return (!state.domain || m[1] === state.domain) && (!state.crit || m[2] === state.crit);
+}
+
+// per-report stats under the current tolerance
+function compute(tol) {
+  const per = REP.map((m, i) => ({ i, name: m[0], domain: m[1], crit: m[2], target: m[3], rows: 0, pass: 0, by: new Array(8).fill(0) }));
+  const cls = new Array(R.length);
+  R.forEach((r, k) => { const s = classify(r, tol); cls[k] = s; const p = per[r[0]]; p.rows++; p.by[s]++; if (isPass(s)) p.pass++; });
+  per.forEach(p => { p.rate = p.rows ? p.pass / p.rows : 1; p.fail = 1 - p.rate; p.ready = p.rate * 100 >= p.target - 1e-9; });
+  return { per, cls };
+}
+
+// ------------------------------------------------------------------ charts
+function reportsChart(items) {
+  const W = 560, L = 196, Rr = 108, T = 4, rowH = 26, H = T * 2 + rowH * items.length;
+  const s = svg($('#cReports'), W, H, 'Failing rows by report');
+  const sc = niceScale(Math.max(...items.map(x => x.fail), 0.02) * 100), max = sc.max / 100;
+  items.forEach((p, i) => {
+    const y = T + rowH * i + 5, w = Math.max((p.fail / max) * (W - L - Rr), 2);
+    txt(s, L - 8, y + 11, p.name, 'lab', 'end');
+    el('path', { d: roundedRight(L, y, w, 14, 4), fill: p.ready ? 'var(--blue)' : 'var(--orange)', class: 'bar',
+                 'data-tip': `<b>${p.name}</b><br>${p.crit} &middot; ${p.domain}<br>Pass rate ${(p.rate * 100).toFixed(2)}% (target ${p.target}%)<br>${p.rows - p.pass} of ${p.rows} rows failing` }, s);
+    const tx = L + ((100 - p.target) / 100 / max) * (W - L - Rr);
+    if (tx < W - Rr) el('line', { x1: tx, x2: tx, y1: y - 3, y2: y + 17, class: 'tgt', 'data-tip': `Allowed limit for ${p.crit} reports: ${(100 - p.target).toFixed(1)}% failing rows` }, s);
+    txt(s, W - Rr + 8, y + 12, `${(p.fail * 100).toFixed(1)}%  ${p.ready ? '✓ Ready' : '✗ Fix'}`, 'val');
+  });
+  el('line', { x1: L, x2: L, y1: T, y2: H - T, class: 'base' }, s);
+}
+
+function typesChart(counts) {
+  const order = [3, 5, 4, 7, 6, 2];
+  const items = order.map(k => ({ k, name: ST[k] + (k === 2 ? ' (passes)' : ''), v: counts[k], color: k === 2 ? 'var(--blue)' : 'var(--orange)' }));
+  const rowH = 34, W = 560, L = 150, Rr = 56, T = 4, H = T + rowH * items.length + 4;
+  const s = svg($('#cTypes'), W, H, 'Rows per defect type');
+  const max = niceScale(Math.max(...items.map(i => i.v), 1)).max;
+  items.forEach((it, i) => {
+    const y = T + rowH * i + 9, w = Math.max((it.v / max) * (W - L - Rr), it.v ? 2 : 0);
+    txt(s, L - 8, y + 11, it.name, 'lab', 'end');
+    el('path', { d: roundedRight(L, y, Math.max(w, 1), 16, 4), fill: it.color, class: 'bar', 'data-tip': `<b>${ST[it.k]}</b><br>${it.v} rows<br>${CAUSE[it.k] || 'Values reconcile; key differs only in case or whitespace.'}` }, s);
+    txt(s, L + Math.max(w, 1) + 8, y + 12, it.v.toLocaleString('en-IN'), 'val');
+  });
+  el('line', { x1: L, x2: L, y1: T, y2: H - 4, class: 'base' }, s);
+}
+
+const BUCKETS = [['<0.01%', 0.0001], ['0.01–0.03%', 0.0003], ['0.03–0.05%', 0.0005], ['0.05–0.1%', 0.001], ['0.1–1%', 0.01], ['>1%', Infinity]];
+function varChart(tol) {
+  const bins = BUCKETS.map(() => ({ pass: 0, fail: 0 }));
+  R.forEach((r, k) => {
+    if (!inScope(r[0]) || (r[1] !== 0 && r[1] !== 5) || r[4] === 0 || r[4] >= 9999) return;
+    const b = BUCKETS.findIndex(x => r[5] < x[1]);
+    const ok = r[4] <= ABS_TOL + 1e-9 || r[5] <= tol;
+    bins[b][ok ? 'pass' : 'fail']++;
+  });
+  const W = 560, H = 250, L = 42, Rr = 8, T = 10, B = 40, ih = H - T - B, iw = W - L - Rr;
+  const s = svg($('#cVar'), W, H, 'Rows by relative difference');
+  const sc = niceScale(Math.max(...bins.map(b => b.pass + b.fail), 1));
+  const g = el('g', { class: 'grid' }, s);
+  for (let k = 0; k <= sc.n; k++) {
+    const y = T + ih - (ih * k) / sc.n;
+    el('line', { x1: L, x2: W - Rr, y1: y, y2: y }, g);
+    txt(s, L - 6, y + 3.5, Math.round(sc.step * k).toLocaleString('en-IN'), '', 'end');
+  }
+  const band = iw / bins.length, bw = Math.min(band * 0.55, 44);
+  bins.forEach((b, i) => {
+    const x = L + band * i + (band - bw) / 2;
+    const hp = (b.pass / sc.max) * ih, hf = (b.fail / sc.max) * ih;
+    const yp = T + ih - hp;
+    if (b.pass) el('path', { d: roundedTop(x, yp, bw, hp, hf ? 0 : 4), fill: 'var(--blue)', class: 'bar', 'data-tip': `<b>${BUCKETS[i][0]} difference</b><br>${b.pass} rows within tolerance` }, s);
+    if (b.fail) el('path', { d: roundedTop(x, yp - hf - (b.pass ? 2 : 0), bw, hf, 4), fill: 'var(--orange)', class: 'bar', 'data-tip': `<b>${BUCKETS[i][0]} difference</b><br>${b.fail} rows outside tolerance` }, s);
+    txt(s, x + bw / 2, H - 22, BUCKETS[i][0], '', 'middle');
+  });
+  txt(s, L + iw / 2, H - 6, 'relative difference vs legacy value', '', 'middle');
+  el('line', { x1: L, x2: W - Rr, y1: T + ih, y2: T + ih, class: 'base' }, s);
+  tablesData['Rows by relative difference'] = BUCKETS.map((b, i) => [b[0], bins[i].pass + ' within', bins[i].fail + ' outside']);
+}
+
+// ---------------------------------------------------------------- render
+function render() {
+  const tol = TOLS[state.tol];
+  $('#tolLabel').textContent = fmtTol(state.tol);
+  const { per, cls } = compute(tol);
+  const scope = per.filter(p => inScope(p.i));
+  const list = scope.filter(p => !state.fix || !p.ready).sort((a, b) => b.fail - a.fail || a.name.localeCompare(b.name));
+
+  // KPIs
+  const tot = scope.reduce((s, p) => s + p.rows, 0), pass = scope.reduce((s, p) => s + p.pass, 0);
+  const ready = scope.filter(p => p.ready).length, blocked = scope.filter(p => p.crit === 'Critical' && !p.ready).length;
+  const k = [
+    ['Reports ready', `${ready} of ${scope.length}`, 'meet their pass-rate target'],
+    ['Row pass rate', tot ? pct(pass / tot, 2) : '—', 'identical or within tolerance'],
+    ['Rows compared', tot.toLocaleString('en-IN'), 'legacy vs upgraded'],
+    ['Failing rows', (tot - pass).toLocaleString('en-IN'), 'need investigation'],
+    ['Critical reports blocked', String(blocked), 'below the 99.9% target']
+  ];
+  $('#kpis').innerHTML = k.map(x => `<div class="kpi"><div class="l">${x[0]}</div><div class="v">${x[1]}</div><div class="n">${x[2]}</div></div>`).join('');
+
+  // insight (also compares with zero tolerance)
+  const strict = compute(0).per.filter(p => inScope(p.i)).filter(p => p.ready).length;
+  const worst = [...scope].sort((a, b) => b.fail - a.fail)[0];
+  if (worst && worst.fail > 0) {
+    const dom = [3, 4, 5, 6, 7].map(s => [s, worst.by[s]]).sort((a, b) => b[1] - a[1])[0];
+    $('#insight').innerHTML = `<b>Takeaway:</b> ${ready} of ${scope.length} reports are ready to sign off at a ${fmtTol(state.tol)} tolerance (only ${strict} at zero tolerance, so rounding differences are real but harmless). ` +
+      `The biggest blocker is <b>${worst.name}</b> (${worst.crit}): ${pct(worst.fail)} of rows fail, mostly <b>${ST[dom[0]].toLowerCase()}</b>. ` +
+      `${blocked ? blocked + ' Critical report' + (blocked > 1 ? 's are' : ' is') + ' blocked and should be fixed first.' : 'No Critical report is blocked.'}`;
+  } else $('#insight').innerHTML = '<b>Takeaway:</b> every report in this selection reconciles.';
+
+  reportsChart(list.length ? list : []);
+  if (!list.length) $('#cReports').innerHTML = '<div class="empty">No reports match the current filters.</div>';
+  tablesData['Failing rows by report'] = list.map(p => [p.name, pct(p.fail, 2) + ' failing', p.ready ? 'Ready' : 'Needs fix']);
+
+  // defect types
+  const counts = new Array(8).fill(0);
+  scope.forEach(p => p.by.forEach((c, s) => counts[s] += c));
+  typesChart(counts);
+  tablesData['Rows per defect type'] = [3, 5, 4, 7, 6, 2].map(s => [ST[s], counts[s].toLocaleString('en-IN')]);
+
+  varChart(tol);
+
+  // defect log
+  const groups = new Map();
+  R.forEach((r, kx) => {
+    const s = cls[kx];
+    if (isPass(s) || !inScope(r[0])) return;
+    const key = r[0] + '_' + s;
+    if (!groups.has(key)) groups.set(key, { rep: r[0], s, n: 0, ex: r });
+    groups.get(key).n++;
+  });
+  const log = [...groups.values()].sort((a, b) => b.n - a.n).slice(0, 14);
+  const f = v => v == null ? 'NULL' : v;
+  $('#cLog').innerHTML = log.length ? '<table><thead><tr><th>Report</th><th>Criticality</th><th>Defect</th><th class="num">Rows</th><th>Example row</th><th>Likely root cause</th></tr></thead><tbody>' +
+    log.map(g => {
+      const m = REP[g.rep], r = g.ex;
+      const ex = g.s === 5 ? `${r[6]}: legacy has it, upgraded does not` : g.s === 6 ? `${r[6]}: only in upgraded` : g.s === 7 ? `${r[6]}: repeated in upgraded` : `${r[6]}: legacy ${f(r[2])} → upgraded ${f(r[3])}`;
+      return `<tr><td>${m[0]}</td><td><span class="tag">${m[2]}</span></td><td>${ST[g.s]}</td><td class="num">${g.n}</td><td>${ex}</td><td>${CAUSE[g.s]}</td></tr>`;
+    }).join('') + '</tbody></table>' : '<div class="empty">No failing rows in this selection.</div>';
+  tablesData['Defect log'] = log.map(g => [REP[g.rep][0], ST[g.s], g.n + ' rows']);
+
+  $('#tables').innerHTML = Object.entries(tablesData).map(([t, rows]) =>
+    `<h3>${t}</h3><div class="tabwrap"><table><tbody>${rows.map(r => '<tr>' + r.map((c, i) => `<td class="${i ? 'num' : ''}">${c}</td>`).join('') + '</tr>').join('')}</tbody></table></div>`).join('');
+}
+
+// ---------------------------------------------------------------- wiring
+$('#fDomain').innerHTML = '<option value="">All domains</option>' + D.domains.map(d => `<option>${d}</option>`).join('');
+$('#fCrit').innerHTML = '<option value="">All criticalities</option>' + ['Critical', 'High', 'Medium', 'Low'].map(d => `<option>${d}</option>`).join('');
+$('#tol').addEventListener('input', e => { state.tol = +e.target.value; render(); });
+$('#fDomain').addEventListener('change', e => { state.domain = e.target.value; render(); });
+$('#fCrit').addEventListener('change', e => { state.crit = e.target.value; render(); });
+$('#fFix').addEventListener('change', e => { state.fix = e.target.checked; render(); });
+$('#reset').addEventListener('click', () => {
+  Object.assign(state, { tol: 4, domain: '', crit: '', fix: false });
+  $('#tol').value = 4; $('#fDomain').value = ''; $('#fCrit').value = ''; $('#fFix').checked = false; render();
+});
+$('#theme').addEventListener('click', () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+});
+const tip = $('#tip');
+document.addEventListener('mousemove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (!t) { tip.style.display = 'none'; return; }
+  tip.innerHTML = t.getAttribute('data-tip'); tip.style.display = 'block';
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + 'px';
+  tip.style.top = Math.max(e.clientY - h - 12, 8) + 'px';
+});
+render();
+</script>
+</body>
+</html>
